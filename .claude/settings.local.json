@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -m venv:*)",
+      "Bash(source:*)",
+      "Bash(pip install:*)",
+      "Bash(python analyze_keepers.py:*)",
+      "Bash(source venv/bin/activate)",
+      "Bash(python:*)",
+      "Bash(ls:*)",
+      "Bash(./venv/bin/python:*)",
+      "Bash(python3:*)",
+      "Bash(pip3 list:*)",
+      "WebFetch(domain:docs.google.com)",
+      "WebFetch(domain:doc-0c-68-sheets.googleusercontent.com)",
+      "Bash(gh auth status)"
+    ]
+  }
+}

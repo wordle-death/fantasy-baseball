@@ -1,0 +1,13 @@
+# Core data manipulation
+pandas>=2.0.0
+
+# Yahoo Fantasy API
+yahoo_oauth>=2.0.0
+yfpy>=15.0.0
+
+# Excel output
+openpyxl>=3.1.0
+
+# Google Sheets integration (for later)
+gspread>=5.10.0
+google-auth>=2.22.0

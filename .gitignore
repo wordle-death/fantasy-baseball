@@ -1,0 +1,30 @@
+# Virtual environment
+venv/
+
+# API credentials (sensitive!)
+yahoo_credentials.json
+token.json
+*.token
+private.json
+google_service_account.json
+
+# Streamlit secrets
+.streamlit/secrets.toml
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# IDE
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Screenshots
+*.png
+*.jpg
+*.jpeg
