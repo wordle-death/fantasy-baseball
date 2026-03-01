@@ -57,7 +57,7 @@ Build a system to prepare for and execute my fantasy baseball keeper league draf
 - User has no Python experience (explain concepts as needed)
 - User willing to learn and troubleshoot
 - Prefer simple, maintainable code over optimization
-- Local execution (no cloud deployment needed for now)
+- Local execution + Streamlit Cloud for mobile access
 
 ## Data Sources
 - Fangraphs projections (paid subscription)
@@ -77,9 +77,9 @@ Build a system to prepare for and execute my fantasy baseball keeper league draf
 - Add comments explaining key concepts
 - Use standard libraries where possible
 
-## Phases (Draft order TBD)
-1. Keeper analysis tool
-2. Draft day monitoring/recommendation tool
+## Phases
+1. Keeper analysis tool (COMPLETE)
+2. Draft day recommendation tool (COMPLETE - testing)
 3. In-season roster management (future)
 
 ## Commands
@@ -88,28 +88,59 @@ Build a system to prepare for and execute my fantasy baseball keeper league draf
 # Activate virtual environment (required before running Python)
 source venv/bin/activate
 
+# --- Keeper Analysis ---
+
 # 1. Refresh Yahoo roster data (position eligibility)
 python refresh_yahoo_rosters.py
 
 # 2. Merge draft history from Google Sheets export
-#    (after exporting draft_2025_parsed.csv from Google Sheets)
 python merge_draft_history.py
 
-# 3. Run SGP valuation (generates sgp_player_values_v3.csv)
+# 3. Run SGP valuation (generates sgp_player_values_v3.csv with per-category stats)
 python src/sgp_valuation.py
 
 # 4. Run keeper analysis for The Nudes
 python run_keeper_analysis.py
-
-# 4b. Run keeper analysis WITH Statcast alert scanning
-python run_keeper_analysis.py --scan-alerts
+python run_keeper_analysis.py --scan-alerts  # with Statcast alerts
 
 # 5. Run league-wide keeper analysis (all 14 teams)
 python run_league_keeper_analysis.py
-
-# 5b. League analysis WITH Statcast alert scanning
 python run_league_keeper_analysis.py --scan-alerts
+
+# --- Draft Day Tool ---
+
+# 6. Draft recommendations (CLI - offline simulation using 2025 data)
+python run_draft_recommendations.py --round 7 --offline
+python run_draft_recommendations.py --round 7 --offline -n 10
+python run_draft_recommendations.py --round 20 --offline  # late-round keeper focus
+
+# 7. Draft recommendations (CLI - with manual roster)
+python run_draft_recommendations.py --round 7 --roster "Player1,Player2,Player3"
+
+# 8. Streamlit web app (local)
+streamlit run app.py
+
+# 9. Custom scoring weights (surplus,category,position,keeper)
+python run_draft_recommendations.py --round 7 --offline --weights 0.5,0.2,0.2,0.1
 ```
+
+## Google Sheets Draft Board
+- **URL**: https://docs.google.com/spreadsheets/d/17AkutPs6lnXAiBk2Jt7LCjGwmckMcRuqdPcubJYrSaA/
+- Tabs: 2026, 2025, 2024, ... back to 2016
+- Format: Grid layout (teams as columns, rounds as rows)
+- Cell format: `{pick_number} {Player Name}` — number-only = not yet picked
+- To enable Google Sheets integration: set up a Google Service Account and save the JSON key as `google_service_account.json`
+
+## Draft Recommendation Scoring
+The draft tool ranks available players using 4 weighted components:
+| Component | Default Weight | What It Measures |
+|-----------|---------------|------------------|
+| Surplus value | 40% | SGP dollar value vs draft round cost |
+| Category need | 25% | How well player fills your weakest categories |
+| Position need | 20% | Whether you need this roster slot filled |
+| Keeper upside | 15% | Future keeper value (cost trajectory over 3 years) |
+
+Weights auto-adjust by draft phase: surplus dominates early, keeper upside rises late.
 
 ## Statcast & News Integration
 
@@ -155,13 +186,17 @@ The module generates search queries for player news. Use with Claude Code's WebS
 
 ```
 Fantasy Baseball/
-├── run_keeper_analysis.py        # Run keeper analysis for The Nudes (--scan-alerts)
+├── app.py                        # Streamlit web app (draft day, phone-accessible)
+├── run_draft_recommendations.py  # CLI draft recommendations
+├── run_keeper_analysis.py        # Keeper analysis for The Nudes (--scan-alerts)
 ├── run_league_keeper_analysis.py # League-wide keeper analysis for all 14 teams
 ├── merge_draft_history.py        # Merge draft history from Google Sheets into Yahoo roster
 ├── refresh_yahoo_rosters.py      # Refresh Yahoo roster data via API
 ├── get_standings.py              # Fetch standings from Yahoo API
 ├── src/
 │   ├── sgp_valuation.py          # SGP player valuation with position scarcity
+│   ├── draft.py                  # Draft recommendation engine (scoring algorithm)
+│   ├── sheets.py                 # Google Sheets integration (draft board reader)
 │   ├── statcast_news.py          # Statcast velocity/spin analysis + news queries
 │   ├── yahoo_import.py           # Yahoo Fantasy API integration
 │   └── projections.py            # Load and normalize projections
@@ -169,7 +204,7 @@ Fantasy Baseball/
 │   ├── projections/              # Fangraphs CSV exports + generated valuations
 │   │   ├── fangraphs-projections-hitters-depthcharts-*.csv
 │   │   ├── fangraphs-projections-pitchers-depthcharts-*.csv
-│   │   └── sgp_player_values_v3.csv
+│   │   └── sgp_player_values_v3.csv  # Includes per-category stats
 │   └── rosters/
 │       ├── yahoo_league.csv      # All 14 teams with positions + draft history
 │       └── draft_2025_parsed.csv # Draft results from Google Sheets
@@ -183,6 +218,7 @@ Fantasy Baseball/
 | Player projections | Fangraphs Depth Charts | Download manually, save to `data/projections/` |
 | Position eligibility | Yahoo API | Run `refresh_yahoo_rosters.py` |
 | Draft rounds & years kept | Google Sheets | Export to `draft_2025_parsed.csv`, run `merge_draft_history.py` |
+| Live draft board | Google Sheets (via API) | `src/sheets.py` reads directly; needs service account credentials |
 | Current rosters | Yahoo API | Players may have been traded since the draft |
 
 **Important:** Draft history must be matched by player NAME across ALL teams (not just current team) because players get traded.

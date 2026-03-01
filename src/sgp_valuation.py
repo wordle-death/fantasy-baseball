@@ -411,6 +411,16 @@ def combine_and_rank_players(hitters_df: pd.DataFrame,
         pitchers['playing_time'] = pitchers['IP']
     keep_cols.append('playing_time')
 
+    # Add per-category stat columns for draft recommendation engine
+    # These are needed to calculate category needs (R, HR, RBI, SB, OBP for hitters;
+    # W, SV, K, ERA, WHIP for pitchers). NaN where stat doesn't apply.
+    stat_cols = ['R', 'HR', 'RBI', 'SB', 'OBP', 'PA',
+                 'W', 'SV', 'K', 'ERA', 'WHIP', 'IP',
+                 'ADP']  # Fangraphs ADP for draft position reality check
+    for col in stat_cols:
+        if col not in keep_cols:
+            keep_cols.append(col)
+
     # Filter to available columns
     hitter_cols = [c for c in keep_cols if c in hitters.columns]
     pitcher_cols = [c for c in keep_cols if c in pitchers.columns]

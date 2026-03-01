@@ -13,7 +13,8 @@
       "Bash(pip3 list:*)",
       "WebFetch(domain:docs.google.com)",
       "WebFetch(domain:doc-0c-68-sheets.googleusercontent.com)",
-      "Bash(gh auth status)"
+      "Bash(gh auth status)",
+      "Bash(timeout 10 streamlit run app.py --server.headless true)"
     ]
   }
 }
