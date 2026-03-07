@@ -14,7 +14,10 @@
       "WebFetch(domain:docs.google.com)",
       "WebFetch(domain:doc-0c-68-sheets.googleusercontent.com)",
       "Bash(gh auth status)",
-      "Bash(timeout 10 streamlit run app.py --server.headless true)"
+      "Bash(timeout 10 streamlit run app.py --server.headless true)",
+      "Bash(gh --version)",
+      "Bash(brew install gh)",
+      "Bash(/opt/homebrew/bin/brew install gh)"
     ]
   }
 }
