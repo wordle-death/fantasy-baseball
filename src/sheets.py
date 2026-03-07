@@ -8,11 +8,13 @@ Reads the league draft board from Google Sheets to determine:
 - Available player pool
 
 DRAFT BOARD FORMAT (grid layout):
-- Row 1: Team names as column headers (e.g., "The Nudes Eli")
-- Rows 2-26: Rounds 1-25, each cell = "{overall_pick_number} {Player Name}"
-- 14 columns = 14 teams
+- Row 0: Team names as column headers (e.g., "The Nudes", "Acuna Machado")
+- Row 1: Owner first names (e.g., "Eli", "Matt") — skipped during parsing
+- Rows 2-26: Rounds 1-25, column 0 = round number, columns 1-14 = pick cells
+- Each pick cell = "{overall_pick_number} {Player Name}" or just "{number}" if unpicked
+- Column 15 may repeat the round number (ignored)
+- 14 team columns (1-14)
 - Snake draft: odd rounds L→R, even rounds R→L
-- Empty cells or number-only cells = not yet picked
 
 SPREADSHEET ID: 17AkutPs6lnXAiBk2Jt7LCjGwmckMcRuqdPcubJYrSaA
 """
@@ -110,8 +112,13 @@ def parse_draft_cell(cell_value: str) -> tuple:
     if match:
         pick_num = int(match.group(1))
         player_name = match.group(2).strip()
-        # Clean up common annotations like "(B)", "(P)", "(traded to X)"
-        player_name = re.sub(r'\s*\([BPbp]\)\s*$', '', player_name)
+        # Clean up common annotations:
+        # "(B)" or "(P)" = batter/pitcher tag
+        # "(2)" or "(3)" = years kept count
+        # "(P) (2)" = pitcher tag + years kept
+        player_name = re.sub(r'\s*\([BPbp]\)', '', player_name)
+        player_name = re.sub(r'\s*\(\d\)', '', player_name)
+        player_name = player_name.strip()
         return (pick_num, player_name)
 
     # Number only = unpicked slot
@@ -171,15 +178,28 @@ def get_draft_board(client: gspread.Client,
     if not team_columns:
         raise ValueError("Could not identify team columns in sheet header row")
 
+    # Find the first row that starts with a round number (1)
+    # This skips any extra header rows (e.g., owner names row in 2026 tab)
+    data_start = 1  # default: rows start right after header
+    for row_idx in range(1, min(5, len(all_values))):
+        first_cell = all_values[row_idx][0].strip() if all_values[row_idx] else ''
+        if first_cell == '1':
+            data_start = row_idx
+            break
+
     # Parse each round row
     picks = []
-    for row_idx in range(1, len(all_values)):
+    for row_idx in range(data_start, len(all_values)):
         row = all_values[row_idx]
         if not row or not any(cell.strip() for cell in row):
             continue
 
-        # Determine round number from row position
-        draft_round = row_idx  # Row 1 = Round 1, Row 2 = Round 2, etc.
+        # Determine round number from first column (round label)
+        first_cell = row[0].strip() if row else ''
+        if first_cell.isdigit():
+            draft_round = int(first_cell)
+        else:
+            continue  # Skip non-round rows
         if draft_round > 25:
             break  # Only 25 rounds
 
