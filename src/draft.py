@@ -85,7 +85,8 @@ def load_prospect_watchlist(path: str = None) -> pd.DataFrame:
     Watchlist players are minor leaguers or unrojected players that should
     appear in draft recommendations despite having no Fangraphs projections.
 
-    CSV format: Name, Position, EstimatedValue, Notes
+    CSV format: Name, Position, EstimatedValue, Notes, Boost
+    Boost is an optional multiplier (default 1.0) for players you like more than consensus.
     """
     if path is None:
         path = Path(__file__).parent.parent / 'data' / 'prospect_watchlist.csv'
@@ -99,11 +100,15 @@ def load_prospect_watchlist(path: str = None) -> pd.DataFrame:
     if df.empty:
         return pd.DataFrame()
 
+    # Apply boost multiplier to estimated value (default 1.0)
+    boost = df['Boost'].fillna(1.0) if 'Boost' in df.columns else 1.0
+    boosted_value = df['EstimatedValue'] * boost
+
     # Map watchlist columns to match SGP values format
     result = pd.DataFrame({
         'Name': df['Name'],
         'primary_position': df['Position'],
-        'dollar_value': df['EstimatedValue'],
+        'dollar_value': boosted_value,
         'player_type': df['Position'].apply(
             lambda p: 'Pitcher' if p in ('SP', 'RP') else 'Hitter'
         ),
