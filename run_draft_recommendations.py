@@ -22,13 +22,22 @@ Usage:
 import argparse
 import pandas as pd
 from pathlib import Path
+from urllib.parse import quote_plus
 
 from src.draft import (
     get_recommendations, format_recommendations,
     project_team_totals, calculate_league_targets,
     calculate_category_needs, calculate_position_needs,
+    load_prospect_watchlist, merge_watchlist,
     DRAFT_ROUND_VALUES, HITTING_CATS, PITCHING_CATS,
 )
+
+# Statcast alerts (optional — pybaseball may not be installed)
+try:
+    from src.statcast_news import analyze_keeper_list, summarize_alerts, get_news_search_query
+    STATCAST_AVAILABLE = True
+except ImportError:
+    STATCAST_AVAILABLE = False
 
 
 def load_sgp_values(path: str = None) -> pd.DataFrame:
@@ -122,6 +131,8 @@ def main():
     parser.add_argument('--weights', type=str, help='Custom weights: surplus,category,position,keeper')
     parser.add_argument('--values', type=str, help='Path to SGP values CSV')
     parser.add_argument('--draft-csv', type=str, help='Path to draft CSV (for simulation)')
+    parser.add_argument('--scan-alerts', action='store_true',
+                        help='Scan recommended players for Statcast velocity/spin alerts')
     args = parser.parse_args()
 
     # Load SGP values
@@ -172,6 +183,13 @@ def main():
     available = sgp_values[
         ~sgp_values['Name'].str.lower().str.strip().isin(drafted_players)
     ].copy()
+
+    # Merge prospect watchlist
+    watchlist = load_prospect_watchlist()
+    if not watchlist.empty:
+        available = merge_watchlist(available, watchlist)
+        print(f"Added {len(watchlist)} prospect watchlist players")
+
     print(f"Available players: {len(available)}")
 
     # Show team state
@@ -194,6 +212,36 @@ def main():
     # Display
     output = format_recommendations(recs, args.round, category_needs)
     print(output)
+
+    # News search links for each recommendation
+    if not recs.empty:
+        print(f"\n{'─'*60}")
+        print(f"  NEWS LINKS")
+        print(f"{'─'*60}")
+        for _, row in recs.iterrows():
+            name = row.get('Name', '?')
+            pos = row.get('primary_position', '?')
+            query = f"{name} MLB 2026 fantasy baseball news"
+            url = f"https://news.google.com/search?q={quote_plus(query)}"
+            print(f"  {name} ({pos}): {url}")
+
+    # Statcast alerts
+    if args.scan_alerts:
+        if not STATCAST_AVAILABLE:
+            print("\nStatcast scanning requires pybaseball: pip install pybaseball")
+        elif not recs.empty:
+            print(f"\n{'─'*60}")
+            print(f"  STATCAST ALERTS")
+            print(f"{'─'*60}")
+            players_to_scan = []
+            for _, row in recs.iterrows():
+                pos = row.get('primary_position', 'Util')
+                players_to_scan.append({
+                    'Player': row['Name'],
+                    'Position': pos,
+                })
+            results = analyze_keeper_list(players_to_scan, verbose=True)
+            print(summarize_alerts(results))
 
 
 if __name__ == '__main__':

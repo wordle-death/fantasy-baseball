@@ -15,6 +15,7 @@ Weights shift by draft phase:
 
 import pandas as pd
 import numpy as np
+from pathlib import Path
 from difflib import SequenceMatcher
 
 # Draft round value curve (what each round is "worth" in dollars)
@@ -75,6 +76,69 @@ def get_phase_weights(current_round: int) -> dict:
         return {'surplus': 0.35, 'category': 0.30, 'position': 0.20, 'keeper': 0.15}
     else:
         return {'surplus': 0.25, 'category': 0.25, 'position': 0.20, 'keeper': 0.30}
+
+
+def load_prospect_watchlist(path: str = None) -> pd.DataFrame:
+    """
+    Load the prospect watchlist CSV and format it to match SGP values columns.
+
+    Watchlist players are minor leaguers or unrojected players that should
+    appear in draft recommendations despite having no Fangraphs projections.
+
+    CSV format: Name, Position, EstimatedValue, Notes
+    """
+    if path is None:
+        path = Path(__file__).parent.parent / 'data' / 'prospect_watchlist.csv'
+    else:
+        path = Path(path)
+
+    if not path.exists():
+        return pd.DataFrame()
+
+    df = pd.read_csv(path)
+    if df.empty:
+        return pd.DataFrame()
+
+    # Map watchlist columns to match SGP values format
+    result = pd.DataFrame({
+        'Name': df['Name'],
+        'primary_position': df['Position'],
+        'dollar_value': df['EstimatedValue'],
+        'player_type': df['Position'].apply(
+            lambda p: 'Pitcher' if p in ('SP', 'RP') else 'Hitter'
+        ),
+        'overall_rank': 999,
+        'Team': 'Prospect',
+        'total_sgp': 0,
+        'ADP': None,
+    })
+
+    # Add empty stat columns so merging works
+    for col in ['R', 'HR', 'RBI', 'SB', 'OBP', 'PA', 'W', 'SV', 'K', 'ERA', 'WHIP', 'IP']:
+        result[col] = 0 if col not in ('OBP', 'ERA', 'WHIP') else None
+
+    # Add notes if present
+    if 'Notes' in df.columns:
+        result['prospect_notes'] = df['Notes']
+
+    return result
+
+
+def merge_watchlist(available: pd.DataFrame, watchlist: pd.DataFrame) -> pd.DataFrame:
+    """Merge prospect watchlist players into the available player pool."""
+    if watchlist.empty:
+        return available
+
+    # Only add watchlist players not already in available pool
+    existing_names = set(available['Name'].str.lower().str.strip())
+    new_prospects = watchlist[
+        ~watchlist['Name'].str.lower().str.strip().isin(existing_names)
+    ]
+
+    if new_prospects.empty:
+        return available
+
+    return pd.concat([available, new_prospects], ignore_index=True)
 
 
 def adp_to_round(adp: float, num_teams: int = 14) -> int:

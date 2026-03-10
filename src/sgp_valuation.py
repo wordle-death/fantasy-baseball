@@ -578,9 +578,13 @@ if __name__ == '__main__':
     proj_dir = Path(__file__).parent.parent / 'data' / 'projections'
     roster_dir = Path(__file__).parent.parent / 'data' / 'rosters'
 
-    # Use real Fangraphs projections (Feb 22, 2026)
-    hitter_file = proj_dir / 'fangraphs-projections-hitters-depthcharts-02.22.26.csv'
-    pitcher_file = proj_dir / 'fangraphs-projections-pitchers-depthcharts-02.22.26.csv'
+    # Find the latest Fangraphs projection files by modification time
+    hitter_files = sorted(proj_dir.glob('fangraphs-projections-hitters-depthcharts-*.csv'), key=lambda f: f.stat().st_mtime, reverse=True)
+    pitcher_files = sorted(proj_dir.glob('fangraphs-projections-pitchers-depthcharts-*.csv'), key=lambda f: f.stat().st_mtime, reverse=True)
+    hitter_file = hitter_files[0] if hitter_files else proj_dir / 'sample_hitters.csv'
+    pitcher_file = pitcher_files[0] if pitcher_files else proj_dir / 'sample_pitchers.csv'
+    print(f"Using hitters: {hitter_file.name}")
+    print(f"Using pitchers: {pitcher_file.name}")
     yahoo_roster = roster_dir / 'yahoo_league.csv'
     output_file = proj_dir / 'sgp_player_values_v3.csv'  # v3 = with position scarcity
 

@@ -13,13 +13,22 @@ Deploy to Streamlit Cloud:
 import streamlit as st
 import pandas as pd
 from pathlib import Path
+from urllib.parse import quote_plus
 
 from src.draft import (
     get_recommendations, project_team_totals, calculate_league_targets,
     calculate_category_needs, calculate_position_needs,
+    load_prospect_watchlist, merge_watchlist,
     DRAFT_ROUND_VALUES, HITTING_CATS, PITCHING_CATS, ROSTER_SLOTS,
     get_phase_weights,
 )
+
+# Statcast alerts (optional)
+try:
+    from src.statcast_news import analyze_keeper_list, summarize_alerts, get_news_search_query
+    STATCAST_AVAILABLE = True
+except ImportError:
+    STATCAST_AVAILABLE = False
 
 # --- Page Config ---
 st.set_page_config(
@@ -180,6 +189,11 @@ else:
         st.error(f"Error reading draft board: {e}")
         st.stop()
 
+# Merge prospect watchlist
+watchlist = load_prospect_watchlist()
+if not watchlist.empty:
+    available = merge_watchlist(available, watchlist)
+
 # Apply position/type filters
 if filter_positions:
     available = available[available['primary_position'].isin(filter_positions)]
@@ -262,6 +276,26 @@ with col_recs:
     if recs.empty:
         st.warning("No recommendations available")
     else:
+        # Statcast alert scanning
+        alert_results = {}
+        if STATCAST_AVAILABLE and st.button("Scan Statcast Alerts"):
+            with st.spinner("Scanning velocity/spin/exit-velo data..."):
+                players_to_scan = [
+                    {'Player': row['Name'], 'Position': row.get('primary_position', 'Util')}
+                    for _, row in recs.iterrows()
+                ]
+                results = analyze_keeper_list(players_to_scan, verbose=False)
+                for r in results:
+                    if r.get('alerts'):
+                        alert_results[r['player']] = r['alerts']
+                st.session_state['alert_results'] = alert_results
+                if not alert_results:
+                    st.success("No Statcast alerts found")
+
+        # Use cached alerts if available
+        if 'alert_results' in st.session_state:
+            alert_results = st.session_state['alert_results']
+
         for idx, row in recs.iterrows():
             name = row.get('Name', '?')
             pos = row.get('primary_position', '?')
@@ -272,9 +306,6 @@ with col_recs:
             cat_impact = row.get('category_impact', '')
             pos_note = row.get('position_note', '')
             notes = row.get('notes', '')
-
-            # Color-code surplus
-            surplus_color = "green" if surplus > 0 else "red"
 
             with st.container(border=True):
                 rank_col, info_col, score_col = st.columns([0.5, 3, 1])
@@ -293,6 +324,16 @@ with col_recs:
                         details.append(notes)
                     if details:
                         st.caption(' | '.join(details))
+
+                    # Statcast alerts inline
+                    if name in alert_results:
+                        for alert in alert_results[name]:
+                            st.warning(alert, icon="⚠️")
+
+                    # News search link
+                    query = f"{name} MLB 2026 fantasy baseball news"
+                    news_url = f"https://news.google.com/search?q={quote_plus(query)}"
+                    st.caption(f"[News]({news_url})")
 
                 with score_col:
                     st.metric("Value", f"${value:.1f}", f"${surplus:+.1f}")
