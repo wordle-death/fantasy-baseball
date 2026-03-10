@@ -53,6 +53,9 @@ def connect_to_sheets(credentials_path: str = 'google_service_account.json') -> 
     """
     Connect to Google Sheets using a service account.
 
+    Tries Streamlit secrets first (for Cloud deployment), then falls back
+    to a local JSON key file.
+
     Args:
         credentials_path: Path to the Google service account JSON key file
 
@@ -63,6 +66,19 @@ def connect_to_sheets(credentials_path: str = 'google_service_account.json') -> 
         'https://www.googleapis.com/auth/spreadsheets',
         'https://www.googleapis.com/auth/drive.readonly',
     ]
+
+    # Try Streamlit secrets first (for Streamlit Cloud deployment)
+    try:
+        import streamlit as st
+        if "gcp_service_account" in st.secrets:
+            creds = Credentials.from_service_account_info(
+                dict(st.secrets["gcp_service_account"]), scopes=scopes
+            )
+            return gspread.authorize(creds)
+    except Exception:
+        pass
+
+    # Fall back to local file
     creds = Credentials.from_service_account_file(credentials_path, scopes=scopes)
     return gspread.authorize(creds)
 

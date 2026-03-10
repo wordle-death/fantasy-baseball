@@ -12,8 +12,16 @@ Deploy to Streamlit Cloud:
 
 import streamlit as st
 import pandas as pd
+import unicodedata
 from pathlib import Path
 from urllib.parse import quote_plus
+
+
+def normalize_name(name: str) -> str:
+    """Normalize a player name for matching (strip accents, lowercase, collapse whitespace)."""
+    nfkd = unicodedata.normalize('NFKD', name)
+    ascii_name = ''.join(c for c in nfkd if not unicodedata.combining(c))
+    return ascii_name.lower().strip()
 
 from src.draft import (
     get_recommendations, project_team_totals, calculate_league_targets,
@@ -65,7 +73,7 @@ def get_available_offline(sgp_values, draft_csv, team, max_round):
 
     # Players drafted through the previous round
     drafted_through = draft_csv[draft_csv['DraftRound'] < max_round]
-    drafted_names = set(drafted_through['Player'].dropna().str.lower().str.strip())
+    drafted_names = set(drafted_through['Player'].dropna().apply(normalize_name))
 
     # My roster so far
     my_picks = drafted_through[drafted_through['Team'] == team].copy()
@@ -73,7 +81,7 @@ def get_available_offline(sgp_values, draft_csv, team, max_round):
 
     # Available = not yet drafted
     available = sgp_values[
-        ~sgp_values['Name'].str.lower().str.strip().isin(drafted_names)
+        ~sgp_values['Name'].apply(normalize_name).isin(drafted_names)
     ].copy()
 
     return available, my_picks
@@ -94,7 +102,7 @@ def try_sheets_connection():
 st.sidebar.title("Draft Settings")
 
 # Mode selection
-mode = st.sidebar.radio("Data Source", ["Offline (CSV)", "Google Sheets"], index=0)
+mode = st.sidebar.radio("Data Source", ["Google Sheets", "Offline (CSV)"], index=0)
 
 # Round selection
 current_round = st.sidebar.slider("Current Round", 1, 25, 7)
@@ -153,28 +161,50 @@ if mode == "Google Sheets":
     sheets_client = try_sheets_connection()
     if sheets_client is None:
         st.warning("Could not connect to Google Sheets. Falling back to offline mode.")
-        st.info("To enable: add `google_service_account.json` to project root and share the draft sheet with the service account email.")
+        st.info("To enable: add `google_service_account.json` to project root, or configure `gcp_service_account` in Streamlit Secrets.")
         mode = "Offline (CSV)"
 
 if mode == "Offline (CSV)":
     draft_csv = load_draft_csv()
     available, my_roster = get_available_offline(sgp_values, draft_csv, team_name, current_round)
 else:
-    # Google Sheets mode
-    from src.sheets import get_draft_board, get_draft_state, get_my_roster, get_available_players
+    # Google Sheets mode — matches CLI --keepers logic
+    from src.sheets import get_draft_board, get_draft_state
     if st.button("Refresh Draft Board"):
         st.cache_data.clear()
 
     try:
         board = get_draft_board(sheets_client, tab_name='2026')
-        state = get_draft_state(board, team_name)
-        my_roster = get_my_roster(board, team_name)
-        available = get_available_players(board, sgp_values)
+        all_picked = board[board['IsPicked'] == True].copy()
 
-        # Override round with actual draft state
+        # Filter out trade annotations
+        all_picked = all_picked[
+            ~all_picked['Player'].str.contains('TRADED', case=False, na=False)
+        ]
+
+        # All kept/drafted players are unavailable (normalized for accent/typo matching)
+        drafted_players = set(
+            normalize_name(p) for p in all_picked['Player'].dropna()
+        )
+
+        # Build my roster from my picks
+        my_picks = all_picked[all_picked['Team'] == team_name]
+        my_roster = pd.DataFrame({
+            'Player': my_picks['Player'].values,
+            'Round': my_picks['Round'].values,
+        })
+
+        # Filter to available players
+        available = sgp_values[
+            ~sgp_values['Name'].apply(normalize_name).isin(drafted_players)
+        ].copy()
+
+        # Draft state for status display
+        state = get_draft_state(board, team_name)
         current_round = state['current_round']
 
         # Show draft state
+        st.caption(f"Keepers/picks loaded: {len(my_roster)} yours, {len(drafted_players)} total")
         if state['draft_complete']:
             st.success("Draft is complete!")
         elif state['is_nudes_turn']:
