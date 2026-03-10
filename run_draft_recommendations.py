@@ -31,6 +31,7 @@ from src.draft import (
     load_prospect_watchlist, merge_watchlist,
     DRAFT_ROUND_VALUES, HITTING_CATS, PITCHING_CATS,
 )
+from src.sheets import connect_to_sheets, get_draft_board
 
 # Statcast alerts (optional — pybaseball may not be installed)
 try:
@@ -38,6 +39,16 @@ try:
     STATCAST_AVAILABLE = True
 except ImportError:
     STATCAST_AVAILABLE = False
+
+
+import unicodedata
+
+def normalize_name(name: str) -> str:
+    """Normalize a player name for matching (strip accents, lowercase, collapse whitespace)."""
+    # Decompose unicode accents and strip combining characters
+    nfkd = unicodedata.normalize('NFKD', name)
+    ascii_name = ''.join(c for c in nfkd if not unicodedata.combining(c))
+    return ascii_name.lower().strip()
 
 
 def load_sgp_values(path: str = None) -> pd.DataFrame:
@@ -124,6 +135,8 @@ def main():
     parser.add_argument('--round', type=int, required=True, help='Current draft round (1-25)')
     parser.add_argument('-n', '--num', type=int, default=8, help='Number of recommendations')
     parser.add_argument('--offline', action='store_true', help='Use 2025 CSV data for simulation')
+    parser.add_argument('--keepers', action='store_true',
+                        help='Read keepers from Google Sheets 2026 tab; use your keepers as roster')
     parser.add_argument('--sim', action='store_true',
                         help='Simulate by removing top players by ADP (more realistic than --offline)')
     parser.add_argument('--roster', type=str, help='Comma-separated player names for your roster')
@@ -149,8 +162,32 @@ def main():
                 'position': parts[2], 'keeper': parts[3],
             }
 
-    # Build roster
-    if args.roster:
+    # Build roster and determine drafted/kept players
+    if args.keepers:
+        # Read keepers from Google Sheets 2026 tab
+        print("Connecting to Google Sheets...")
+        client = connect_to_sheets()
+        board = get_draft_board(client, tab_name='2026')
+        all_picked = board[board['IsPicked'] == True].copy()
+
+        # Filter out trade annotations
+        all_picked = all_picked[~all_picked['Player'].str.contains('TRADED', case=False, na=False)]
+
+        # All kept/drafted players are unavailable (normalized for accent/typo matching)
+        drafted_players = set(
+            normalize_name(p) for p in all_picked['Player'].dropna()
+        )
+
+        # Build my roster from my keepers
+        my_keepers = all_picked[all_picked['Team'] == args.team]
+        my_roster = pd.DataFrame({
+            'Player': my_keepers['Player'].values,
+            'Round': my_keepers['Round'].values,
+        })
+        print(f"Loaded {len(my_roster)} keepers for {args.team}")
+        print(f"Total kept players across league: {len(drafted_players)}")
+
+    elif args.roster:
         # Manual roster input
         names = args.roster.split(',')
         my_roster = build_roster_from_names(names, sgp_values)
@@ -174,14 +211,28 @@ def main():
         print(f"Loaded {len(my_roster)} players for {args.team} through round {args.round - 1}")
         print(f"Total players drafted by all teams: {len(drafted_players)}")
     else:
-        # TODO: Google Sheets integration
-        print("Google Sheets mode requires credentials. Use --offline for CSV-based simulation.")
-        print("  Example: python run_draft_recommendations.py --round 7 --sim")
-        return
+        # Live Google Sheets mode — reads current draft state
+        print("Connecting to Google Sheets...")
+        client = connect_to_sheets()
+        board = get_draft_board(client, tab_name='2026')
+        all_picked = board[board['IsPicked'] == True].copy()
+        all_picked = all_picked[~all_picked['Player'].str.contains('TRADED', case=False, na=False)]
 
-    # Filter to available players
+        drafted_players = set(
+            normalize_name(p) for p in all_picked['Player'].dropna()
+        )
+
+        my_picks = all_picked[all_picked['Team'] == args.team]
+        my_roster = pd.DataFrame({
+            'Player': my_picks['Player'].values,
+            'Round': my_picks['Round'].values,
+        })
+        print(f"Loaded {len(my_roster)} picks for {args.team}")
+        print(f"Total drafted/kept players: {len(drafted_players)}")
+
+    # Filter to available players (use normalized names for accent/typo tolerance)
     available = sgp_values[
-        ~sgp_values['Name'].str.lower().str.strip().isin(drafted_players)
+        ~sgp_values['Name'].apply(normalize_name).isin(drafted_players)
     ].copy()
 
     # Merge prospect watchlist

@@ -18,10 +18,11 @@ Build a system to prepare for and execute my fantasy baseball keeper league draf
     - 9th-11th place: 7 keepers each
     - 12th-14th place: 6 keepers each
   - Keeper cost for DRAFTED players: previous year's draft round minus 3
-  - **Undrafted players (waiver pickups) are kept at Round 18 directly - NO -3 discount**
+  - **Keeper rounds start at Round 18** — this is the latest round a player can be kept at. Players drafted in rounds 19-25 or picked up off waivers are all kept at Round 18 (no -3 discount for waiver pickups).
   - **Players drafted in rounds 1-3 are NOT eligible to be kept** (can't go below round 1)
   - Players can be kept maximum 3 years
-  - **Round conflicts:** If you have multiple keepers at the same round, you must keep one at that round and bump the other(s) to earlier rounds. Example: Two Round 15 keepers → one stays at 15, one goes to 14.
+  - **Shohei Ohtani exists as two separate players** in Yahoo (hitter and pitcher). The draft board doesn't distinguish, but they are separate draftable entities.
+  - **Round conflicts:** If you have multiple keepers at the same round, you must keep one at that round and bump the other(s) to earlier rounds. This commonly happens with round 18 keepers — if you have 4 waiver pickups to keep, they go at rounds 18, 17, 16, 15. Example: Two Round 15 keepers → one stays at 15, one goes to 14.
 - Draft process:
   - Asynchronous over 1-2 weeks
   - Picks made via Slack, tracked in Google Sheets
