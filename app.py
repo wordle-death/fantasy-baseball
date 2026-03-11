@@ -230,9 +230,15 @@ watchlist = load_prospect_watchlist()
 if not watchlist.empty:
     available = merge_watchlist(available, watchlist)
 
-# Apply position/type filters
+# Apply position/type filters (check all eligible positions, not just primary)
 if filter_positions:
-    available = available[available['primary_position'].isin(filter_positions)]
+    def matches_position_filter(row):
+        eligible = row.get('eligible_positions', '') or ''
+        if not eligible or (isinstance(eligible, float) and pd.isna(eligible)):
+            eligible = row.get('primary_position', 'Util') or 'Util'
+        positions = [p.strip() for p in str(eligible).split(',')]
+        return any(p in filter_positions for p in positions)
+    available = available[available.apply(matches_position_filter, axis=1)]
 if filter_type:
     available = available[available['player_type'].isin(filter_type)]
 
@@ -334,7 +340,10 @@ with col_recs:
 
         for idx, row in recs.iterrows():
             name = row.get('Name', '?')
-            pos = row.get('primary_position', '?')
+            eligible = row.get('eligible_positions', '')
+            if not eligible or (isinstance(eligible, float) and pd.isna(eligible)):
+                eligible = row.get('primary_position', '?')
+            pos = str(eligible).replace(',', '/')
             team = row.get('Team', '?')
             value = row.get('dollar_value', 0)
             surplus = row.get('surplus', 0)
@@ -376,7 +385,7 @@ with col_recs:
 
     # Expandable full table
     with st.expander("Full Available Players"):
-        display_cols = ['Name', 'primary_position', 'Team', 'dollar_value', 'overall_rank', 'player_type']
+        display_cols = ['Name', 'eligible_positions', 'primary_position', 'Team', 'dollar_value', 'overall_rank', 'player_type']
         display_cols = [c for c in display_cols if c in available.columns]
         st.dataframe(
             available[display_cols].head(50),

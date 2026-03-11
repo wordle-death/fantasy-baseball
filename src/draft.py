@@ -415,28 +415,75 @@ def score_player_category_fit(player: pd.Series, category_needs: dict,
     return score
 
 
+def _get_eligible_positions(row) -> list:
+    """Get list of eligible positions from a player row, falling back to primary_position."""
+    eligible = row.get('eligible_positions', '') if hasattr(row, 'get') else ''
+    if not eligible or (isinstance(eligible, float) and pd.isna(eligible)):
+        eligible = row.get('primary_position', 'Util') if hasattr(row, 'get') else 'Util'
+    if not eligible or (isinstance(eligible, float) and pd.isna(eligible)):
+        eligible = 'Util'
+    return [p.strip() for p in str(eligible).split(',')]
+
+
+def _assign_roster_slots(matched: pd.DataFrame) -> dict:
+    """
+    Greedily assign players to roster slots using multi-position eligibility.
+    Most-constrained players (fewest eligible positions) get assigned first.
+    Returns dict of {position: count_filled}.
+    """
+    assignable_slots = {pos: slots for pos, slots in ROSTER_SLOTS.items()
+                        if pos not in ('BN', 'Util')}
+    remaining = dict(assignable_slots)
+    filled = {pos: 0 for pos in remaining}
+
+    # Build eligibility list per player
+    players = []
+    for _, row in matched.iterrows():
+        positions = _get_eligible_positions(row)
+        valid = [p for p in positions if p in assignable_slots]
+        if not valid:
+            continue  # Will go to Util/BN
+        players.append(valid)
+
+    # Sort by most constrained first (fewest eligible positions)
+    players.sort(key=lambda p: len(p))
+
+    for positions in players:
+        # Try to fill the slot with fewest remaining capacity
+        best_pos = None
+        best_remaining = float('inf')
+        for pos in positions:
+            if remaining.get(pos, 0) > 0 and remaining[pos] < best_remaining:
+                best_remaining = remaining[pos]
+                best_pos = pos
+        if best_pos:
+            remaining[best_pos] -= 1
+            filled[best_pos] += 1
+
+    return filled
+
+
 def calculate_position_needs(roster: pd.DataFrame, sgp_values: pd.DataFrame) -> dict:
     """
-    Determine which roster positions are filled vs empty.
+    Determine which roster positions are filled vs empty,
+    using multi-position eligibility for smart slot assignment.
 
     Returns dict of {position: need_multiplier}:
     - Empty starting position → 1.5
     - Partially filled (e.g., 2 of 3 OF) → 1.2
     - Already filled → 0.8
     """
-    # Count filled positions
     filled = {}
     if not roster.empty:
         matched = _match_roster_to_values(roster, sgp_values)
-        if 'primary_position' in matched.columns:
-            filled = matched['primary_position'].value_counts().to_dict()
+        filled = _assign_roster_slots(matched)
 
     needs = {}
     for pos, slots in ROSTER_SLOTS.items():
         if pos == 'BN':
-            continue  # Bench doesn't have position need
+            continue
         if pos == 'Util':
-            continue  # Util is flexible
+            continue
 
         current = filled.get(pos, 0)
         if current == 0:
@@ -452,12 +499,10 @@ def calculate_position_needs(roster: pd.DataFrame, sgp_values: pd.DataFrame) -> 
 def score_player_position_fit(player: pd.Series, position_needs: dict) -> float:
     """
     Score how well a player fills a positional need.
+    For multi-position players, returns the highest need among eligible positions.
     """
-    pos = player.get('primary_position', 'Util')
-    if pd.isna(pos):
-        pos = 'Util'
-
-    return position_needs.get(pos, 1.0)
+    positions = _get_eligible_positions(player)
+    return max(position_needs.get(pos, 1.0) for pos in positions)
 
 
 def calculate_keeper_premium(player: pd.Series, current_round: int) -> float:
@@ -614,7 +659,7 @@ def get_recommendations(available_players: pd.DataFrame,
 
     # Select output columns
     output_cols = [
-        'Name', 'Team', 'primary_position', 'player_type',
+        'Name', 'Team', 'primary_position', 'eligible_positions', 'player_type',
         'dollar_value', 'surplus', 'category_score', 'position_score',
         'keeper_score', 'total_score', 'category_impact', 'position_note', 'notes',
         'R', 'HR', 'RBI', 'SB', 'OBP', 'W', 'SV', 'K', 'ERA', 'WHIP',
@@ -742,16 +787,18 @@ def _format_category_impact(player: pd.Series, category_needs: dict) -> str:
 
 
 def _format_position_note(player: pd.Series, position_needs: dict) -> str:
-    """Format a note about position fit."""
-    pos = player.get('primary_position', 'Util')
-    if pd.isna(pos):
-        pos = 'Util'
+    """Format a note about position fit, showing multi-position eligibility."""
+    positions = _get_eligible_positions(player)
+    pos_label = '/'.join(positions) if len(positions) > 1 else positions[0]
 
-    need = position_needs.get(pos, 1.0)
+    # Find the best position need among eligible positions
+    best_pos = max(positions, key=lambda p: position_needs.get(p, 1.0))
+    need = position_needs.get(best_pos, 1.0)
+
     if need >= 1.5:
-        return f"{pos} — HIGH NEED (empty slot)"
+        return f"{pos_label} — HIGH NEED ({best_pos} empty)"
     elif need >= 1.2:
-        return f"{pos} — partial need"
+        return f"{pos_label} — partial need ({best_pos})"
     elif need <= 0.8:
-        return f"{pos} — already filled"
-    return pos
+        return f"{pos_label} — already filled"
+    return pos_label

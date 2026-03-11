@@ -399,6 +399,8 @@ def combine_and_rank_players(hitters_df: pd.DataFrame,
     # Add position columns if available
     if 'primary_position' in hitters.columns:
         keep_cols.append('primary_position')
+    if 'Position' in hitters.columns:
+        keep_cols.append('Position')  # Multi-position eligibility from Yahoo
     if 'position_multiplier' in hitters.columns:
         keep_cols.append('position_multiplier')
     if 'adjusted_sgp' in hitters.columns:
@@ -430,6 +432,10 @@ def combine_and_rank_players(hitters_df: pd.DataFrame,
 
     # Combine
     combined = pd.concat([hitters_slim, pitchers_slim], ignore_index=True)
+
+    # Rename Position to eligible_positions for clarity
+    if 'Position' in combined.columns:
+        combined = combined.rename(columns={'Position': 'eligible_positions'})
 
     # Add overall rank
     combined['overall_rank'] = combined['dollar_value'].rank(ascending=False, method='min').astype(int)
