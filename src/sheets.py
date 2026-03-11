@@ -262,7 +262,11 @@ def get_draft_state(draft_board: pd.DataFrame, my_team: str = 'The Nudes') -> di
     """
     total_picks = len(draft_board)
     picked = draft_board[draft_board['IsPicked']]
-    unpicked = draft_board[~draft_board['IsPicked']]
+
+    # Sort unpicked by OverallPick to get correct snake-draft order
+    # (column order is always L→R, but even rounds draft R→L)
+    unpicked = draft_board[~draft_board['IsPicked']].copy()
+    unpicked = unpicked.dropna(subset=['OverallPick']).sort_values('OverallPick')
 
     if unpicked.empty:
         return {
@@ -277,12 +281,12 @@ def get_draft_state(draft_board: pd.DataFrame, my_team: str = 'The Nudes') -> di
             'draft_complete': True,
         }
 
-    # Current position = first unpicked slot
+    # Current position = first unpicked slot in draft order
     next_pick = unpicked.iloc[0]
     current_round = next_pick['Round']
-    current_pick = next_pick['Pick']
+    current_pick = next_pick['OverallPick']
 
-    # Find next Nudes pick
+    # Find next Nudes pick (in draft order)
     nudes_unpicked = unpicked[unpicked['Team'] == my_team]
     if nudes_unpicked.empty:
         next_nudes_round = None
@@ -292,10 +296,10 @@ def get_draft_state(draft_board: pd.DataFrame, my_team: str = 'The Nudes') -> di
     else:
         next_nudes = nudes_unpicked.iloc[0]
         next_nudes_round = next_nudes['Round']
-        next_nudes_pick = next_nudes['Pick']
-        # Count picks between current position and next Nudes pick
+        next_nudes_pick = next_nudes['OverallPick']
+        # Count picks before the first Nudes pick in draft order
         picks_until_nudes = len(unpicked[
-            (unpicked.index < nudes_unpicked.index[0])
+            unpicked['OverallPick'] < next_nudes_pick
         ])
         is_nudes_turn = picks_until_nudes == 0
 
