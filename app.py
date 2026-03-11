@@ -10,6 +10,7 @@ Deploy to Streamlit Cloud:
     3. Store Google credentials in Streamlit Secrets
 """
 
+import re
 import streamlit as st
 import pandas as pd
 import unicodedata
@@ -18,10 +19,15 @@ from urllib.parse import quote_plus
 
 
 def normalize_name(name: str) -> str:
-    """Normalize a player name for matching (strip accents, lowercase, collapse whitespace)."""
+    """Normalize a player name for matching (strip accents, suffixes, lowercase)."""
     nfkd = unicodedata.normalize('NFKD', name)
     ascii_name = ''.join(c for c in nfkd if not unicodedata.combining(c))
-    return ascii_name.lower().strip()
+    name = ascii_name.lower().strip()
+    # Strip common suffixes: Jr., Jr, Sr., Sr, II, III, IV
+    name = re.sub(r'\b(jr\.?|sr\.?|ii|iii|iv)\s*$', '', name).strip()
+    # Collapse multiple spaces
+    name = re.sub(r'\s+', ' ', name)
+    return name
 
 from src.draft import (
     get_recommendations, project_team_totals, calculate_league_targets,

@@ -20,6 +20,7 @@ SPREADSHEET ID: 17AkutPs6lnXAiBk2Jt7LCjGwmckMcRuqdPcubJYrSaA
 """
 
 import re
+import unicodedata
 import pandas as pd
 import gspread
 from google.oauth2.service_account import Credentials
@@ -324,10 +325,21 @@ def get_my_roster(draft_board: pd.DataFrame, my_team: str = 'The Nudes') -> pd.D
     return team_picks[['Player', 'Round', 'OverallPick']].reset_index(drop=True)
 
 
+def _normalize_name(name: str) -> str:
+    """Normalize a player name for matching (strip accents, suffixes, lowercase)."""
+    nfkd = unicodedata.normalize('NFKD', name)
+    ascii_name = ''.join(c for c in nfkd if not unicodedata.combining(c))
+    name = ascii_name.lower().strip()
+    # Strip common suffixes: Jr., Jr, Sr., Sr, II, III, IV
+    name = re.sub(r'\b(jr\.?|sr\.?|ii|iii|iv)\s*$', '', name).strip()
+    name = re.sub(r'\s+', ' ', name)
+    return name
+
+
 def get_drafted_players(draft_board: pd.DataFrame) -> set:
     """Get set of all player names that have been drafted or kept."""
     picked = draft_board[draft_board['IsPicked']]
-    return set(picked['Player'].dropna().str.lower().str.strip())
+    return set(picked['Player'].dropna().apply(_normalize_name))
 
 
 def get_available_players(draft_board: pd.DataFrame,
@@ -342,7 +354,7 @@ def get_available_players(draft_board: pd.DataFrame,
 
     # Filter SGP values to undrafted players
     available = sgp_values[
-        ~sgp_values['Name'].str.lower().str.strip().isin(drafted)
+        ~sgp_values['Name'].apply(_normalize_name).isin(drafted)
     ].copy()
 
     return available.sort_values('dollar_value', ascending=False)
