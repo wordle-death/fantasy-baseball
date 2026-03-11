@@ -13,6 +13,8 @@ Weights shift by draft phase:
 - Late rounds (17-25): keeper upside increases
 """
 
+import re
+import unicodedata
 import pandas as pd
 import numpy as np
 from pathlib import Path
@@ -129,15 +131,25 @@ def load_prospect_watchlist(path: str = None) -> pd.DataFrame:
     return result
 
 
+def _normalize_name(name: str) -> str:
+    """Normalize a player name for matching (strip accents, suffixes, lowercase)."""
+    nfkd = unicodedata.normalize('NFKD', name)
+    ascii_name = ''.join(c for c in nfkd if not unicodedata.combining(c))
+    name = ascii_name.lower().strip()
+    name = re.sub(r'\b(jr\.?|sr\.?|ii|iii|iv)\s*$', '', name).strip()
+    name = re.sub(r'\s+', ' ', name)
+    return name
+
+
 def merge_watchlist(available: pd.DataFrame, watchlist: pd.DataFrame) -> pd.DataFrame:
     """Merge prospect watchlist players into the available player pool."""
     if watchlist.empty:
         return available
 
     # Only add watchlist players not already in available pool
-    existing_names = set(available['Name'].str.lower().str.strip())
+    existing_names = set(available['Name'].apply(_normalize_name))
     new_prospects = watchlist[
-        ~watchlist['Name'].str.lower().str.strip().isin(existing_names)
+        ~watchlist['Name'].apply(_normalize_name).isin(existing_names)
     ]
 
     if new_prospects.empty:
@@ -671,19 +683,19 @@ def _match_roster_to_values(roster: pd.DataFrame,
         if not player_name or pd.isna(player_name):
             continue
 
-        # Try exact match
-        exact = sgp_values[sgp_values['Name'].str.lower().str.strip() ==
-                           player_name.lower().strip()]
+        # Try exact match (normalized: strips accents, suffixes like Jr./Sr.)
+        norm_name = _normalize_name(player_name)
+        exact = sgp_values[sgp_values['Name'].apply(_normalize_name) == norm_name]
         if not exact.empty:
             matched_rows.append(exact.iloc[0])
             continue
 
-        # Try fuzzy match
+        # Try fuzzy match on normalized names
         best_score = 0
         best_row = None
         for _, val_row in sgp_values.iterrows():
             score = SequenceMatcher(
-                None, player_name.lower().strip(), val_row['Name'].lower().strip()
+                None, norm_name, _normalize_name(val_row['Name'])
             ).ratio()
             if score > best_score and score > 0.8:
                 best_score = score

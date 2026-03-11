@@ -20,6 +20,7 @@ SPREADSHEET ID: 17AkutPs6lnXAiBk2Jt7LCjGwmckMcRuqdPcubJYrSaA
 """
 
 import re
+import unicodedata
 import pandas as pd
 import gspread
 from google.oauth2.service_account import Credentials
@@ -261,7 +262,11 @@ def get_draft_state(draft_board: pd.DataFrame, my_team: str = 'The Nudes') -> di
     """
     total_picks = len(draft_board)
     picked = draft_board[draft_board['IsPicked']]
-    unpicked = draft_board[~draft_board['IsPicked']]
+
+    # Sort unpicked by OverallPick to get correct snake-draft order
+    # (column order is always L→R, but even rounds draft R→L)
+    unpicked = draft_board[~draft_board['IsPicked']].copy()
+    unpicked = unpicked.dropna(subset=['OverallPick']).sort_values('OverallPick')
 
     if unpicked.empty:
         return {
@@ -276,12 +281,12 @@ def get_draft_state(draft_board: pd.DataFrame, my_team: str = 'The Nudes') -> di
             'draft_complete': True,
         }
 
-    # Current position = first unpicked slot
+    # Current position = first unpicked slot in draft order
     next_pick = unpicked.iloc[0]
     current_round = next_pick['Round']
-    current_pick = next_pick['Pick']
+    current_pick = next_pick['OverallPick']
 
-    # Find next Nudes pick
+    # Find next Nudes pick (in draft order)
     nudes_unpicked = unpicked[unpicked['Team'] == my_team]
     if nudes_unpicked.empty:
         next_nudes_round = None
@@ -291,10 +296,10 @@ def get_draft_state(draft_board: pd.DataFrame, my_team: str = 'The Nudes') -> di
     else:
         next_nudes = nudes_unpicked.iloc[0]
         next_nudes_round = next_nudes['Round']
-        next_nudes_pick = next_nudes['Pick']
-        # Count picks between current position and next Nudes pick
+        next_nudes_pick = next_nudes['OverallPick']
+        # Count picks before the first Nudes pick in draft order
         picks_until_nudes = len(unpicked[
-            (unpicked.index < nudes_unpicked.index[0])
+            unpicked['OverallPick'] < next_nudes_pick
         ])
         is_nudes_turn = picks_until_nudes == 0
 
@@ -324,10 +329,21 @@ def get_my_roster(draft_board: pd.DataFrame, my_team: str = 'The Nudes') -> pd.D
     return team_picks[['Player', 'Round', 'OverallPick']].reset_index(drop=True)
 
 
+def _normalize_name(name: str) -> str:
+    """Normalize a player name for matching (strip accents, suffixes, lowercase)."""
+    nfkd = unicodedata.normalize('NFKD', name)
+    ascii_name = ''.join(c for c in nfkd if not unicodedata.combining(c))
+    name = ascii_name.lower().strip()
+    # Strip common suffixes: Jr., Jr, Sr., Sr, II, III, IV
+    name = re.sub(r'\b(jr\.?|sr\.?|ii|iii|iv)\s*$', '', name).strip()
+    name = re.sub(r'\s+', ' ', name)
+    return name
+
+
 def get_drafted_players(draft_board: pd.DataFrame) -> set:
     """Get set of all player names that have been drafted or kept."""
     picked = draft_board[draft_board['IsPicked']]
-    return set(picked['Player'].dropna().str.lower().str.strip())
+    return set(picked['Player'].dropna().apply(_normalize_name))
 
 
 def get_available_players(draft_board: pd.DataFrame,
@@ -342,7 +358,7 @@ def get_available_players(draft_board: pd.DataFrame,
 
     # Filter SGP values to undrafted players
     available = sgp_values[
-        ~sgp_values['Name'].str.lower().str.strip().isin(drafted)
+        ~sgp_values['Name'].apply(_normalize_name).isin(drafted)
     ].copy()
 
     return available.sort_values('dollar_value', ascending=False)

@@ -41,14 +41,20 @@ except ImportError:
     STATCAST_AVAILABLE = False
 
 
+import re
 import unicodedata
 
 def normalize_name(name: str) -> str:
-    """Normalize a player name for matching (strip accents, lowercase, collapse whitespace)."""
+    """Normalize a player name for matching (strip accents, suffixes, lowercase)."""
     # Decompose unicode accents and strip combining characters
     nfkd = unicodedata.normalize('NFKD', name)
     ascii_name = ''.join(c for c in nfkd if not unicodedata.combining(c))
-    return ascii_name.lower().strip()
+    name = ascii_name.lower().strip()
+    # Strip common suffixes: Jr., Jr, Sr., Sr, II, III, IV
+    name = re.sub(r'\b(jr\.?|sr\.?|ii|iii|iv)\s*$', '', name).strip()
+    # Collapse multiple spaces
+    name = re.sub(r'\s+', ' ', name)
+    return name
 
 
 def load_sgp_values(path: str = None) -> pd.DataFrame:
@@ -90,7 +96,7 @@ def get_drafted_players_from_csv(csv_path: str, max_round: int = None) -> set:
     df = pd.read_csv(csv_path)
     if max_round is not None:
         df = df[df['DraftRound'] <= max_round]
-    return set(df['Player'].dropna().str.lower().str.strip())
+    return set(df['Player'].dropna().apply(normalize_name))
 
 
 def display_team_state(team_totals: dict, targets: dict, category_needs: dict,
