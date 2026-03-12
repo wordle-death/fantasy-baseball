@@ -1,6 +1,6 @@
 Team,Player,Position,DraftRound,YearsKept
 Giant City,Cal Raleigh,C,9,0
-Giant City,Brandon Lowe,"1B,2B",9,0
+Giant City,Brandon Lowe,2B,9,0
 Giant City,Ketel Marte,2B,5,2
 Giant City,Alex Bregman,3B,4,0
 Giant City,Byron Buxton,OF,17,0
@@ -16,7 +16,7 @@ Giant City,Spencer Strider,SP,12,3
 Giant City,Edward Cabrera,SP,0,0
 Giant City,Raisel Iglesias,RP,3,0
 Giant City,Mason Miller,RP,14,2
-Giant City,Hogan Harris,"SP,RP",0,0
+Giant City,Hogan Harris,RP,0,0
 Giant City,Jeremiah Estrada,RP,21,0
 Giant City,Daniel Palencia,RP,0,0
 Giant City,Tyler Kinley,RP,22,0
@@ -29,13 +29,13 @@ Acuna Machado,J.T. Realmuto,C,0,0
 Acuna Machado,Ben Rice,"C,1B",0,0
 Acuna Machado,Otto Lopez,"2B,SS",0,0
 Acuna Machado,Maikel Garcia,"2B,3B,SS,OF",19,0
-Acuna Machado,Matt McLain,"2B,SS",13,2
+Acuna Machado,Matt McLain,2B,13,2
 Acuna Machado,Randy Arozarena,OF,6,0
 Acuna Machado,Juan Soto,OF,1,0
 Acuna Machado,Kyle Schwarber,OF,2,0
 Acuna Machado,Jo Adell,OF,0,0
 Acuna Machado,Ian Happ,OF,5,0
-Acuna Machado,Oneil Cruz,"SS,OF",3,0
+Acuna Machado,Oneil Cruz,OF,3,0
 Acuna Machado,Simeon Woods Richardson,SP,0,0
 Acuna Machado,Lance McCullers Jr.,SP,0,0
 Acuna Machado,Jhoan Duran,RP,10,3
@@ -50,21 +50,21 @@ Acuna Machado,Sandy Alcantara,SP,17,0
 Acuna Machado,Tyler Wells,SP,0,0
 Acuna Machado,Sonny Gray,SP,13,2
 Acuna Machado,Andrew Painter,SP,22,0
-Acuna Machado,Luis Garcia,SP,18,0
+Acuna Machado,Luis Garcia,RP,18,0
 Bowls on Parade,Ivan Herrera,C,0,0
 Bowls on Parade,Colson Montgomery,"3B,SS",0,0
 Bowls on Parade,Bobby Witt Jr.,SS,1,0
 Bowls on Parade,Jackson Merrill,OF,17,1
 Bowls on Parade,Andy Pages,OF,24,0
-Bowls on Parade,Marcell Ozuna,OF,12,2
+Bowls on Parade,Marcell Ozuna,Util,12,2
 Bowls on Parade,Mickey Moniak,OF,0,0
 Bowls on Parade,Travis Bazzana,2B,0,0
 Bowls on Parade,Kristian Campbell,"2B,OF",19,0
-Bowls on Parade,Coby Mayo,"1B,3B",0,0
+Bowls on Parade,Coby Mayo,1B,0,0
 Bowls on Parade,Connor Norby,"2B,3B",19,0
 Bowls on Parade,Leo De Vries,SS,0,0
 Bowls on Parade,Brett Baty,"2B,3B",0,0
-Bowls on Parade,Cam Smith,"3B,OF",21,0
+Bowls on Parade,Cam Smith,OF,21,0
 Bowls on Parade,Rhys Hoskins,1B,22,0
 Bowls on Parade,Alex Vesia,RP,0,0
 Bowls on Parade,Riley O'Brien,RP,0,0
@@ -81,13 +81,13 @@ Bowls on Parade,Cade Horton,SP,0,0
 Bowls on Parade,Jared Jones,SP,18,1
 Cybulski Tax Service,Kyle Teel,C,0,0
 Cybulski Tax Service,Matt Olson,1B,1,0
-Cybulski Tax Service,Luis García Jr.,2B,18,0
+Cybulski Tax Service,Luis García Jr.,RP,18,0
 Cybulski Tax Service,José Caballero,"2B,3B,SS,OF",0,0
 Cybulski Tax Service,Gunnar Henderson,SS,10,3
 Cybulski Tax Service,Noelvi Marte,"3B,OF",0,0
 Cybulski Tax Service,Pete Crow-Armstrong,OF,17,0
 Cybulski Tax Service,Jordan Beck,OF,0,0
-Cybulski Tax Service,Jonathan Aranda,"1B,2B",23,0
+Cybulski Tax Service,Jonathan Aranda,1B,23,0
 Cybulski Tax Service,Austin Wells,C,20,0
 Cybulski Tax Service,Nolan Schanuel,1B,0,0
 Cybulski Tax Service,Riley Greene,OF,4,0
@@ -107,8 +107,8 @@ Cybulski Tax Service,Jack Flaherty,SP,16,0
 Cybulski Tax Service,Evan Carter,OF,22,0
 Cybulski Tax Service,José Alvarado,RP,24,0
 Fire Bad,Salvador Perez,"C,1B",7,1
-Fire Bad,Isaac Paredes,"1B,3B",10,2
-Fire Bad,Caleb Durbin,"2B,3B,SS",0,0
+Fire Bad,Isaac Paredes,3B,10,2
+Fire Bad,Caleb Durbin,"2B,3B",0,0
 Fire Bad,Royce Lewis,3B,15,2
 Fire Bad,Jeremiah Jackson,"3B,SS,OF",0,0
 Fire Bad,Seiya Suzuki,OF,4,0
@@ -119,14 +119,14 @@ Fire Bad,Brandon Nimmo,OF,6,0
 Fire Bad,Drake Baldwin,C,20,0
 Fire Bad,Anthony Volpe,SS,11,3
 Fire Bad,Sebastian Walcott,"3B,SS",0,0
-Fire Bad,JJ Wetherholt,SS,0,0
+Fire Bad,JJ Wetherholt,"2B,3B,SS",0,0
 Fire Bad,Logan Gilbert,SP,2,0
 Fire Bad,Jack Dreyer,"SP,RP",0,0
 Fire Bad,Ryan Walker,RP,25,0
 Fire Bad,Tony Santillan,RP,0,0
-Fire Bad,Garrett Whitlock,"SP,RP",0,0
+Fire Bad,Garrett Whitlock,RP,0,0
 Fire Bad,Matt Strahm,RP,24,0
-Fire Bad,Shawn Armstrong,"SP,RP",0,0
+Fire Bad,Shawn Armstrong,RP,0,0
 Fire Bad,Adrian Morejon,RP,0,0
 Fire Bad,Luis Morales,SP,0,0
 Fire Bad,Tyler Mahle,SP,0,0
@@ -135,9 +135,9 @@ Fire Bad,Jose Quintana,SP,0,0
 Fire Bad,Trevor Megill,RP,5,0
 Fire Bad,Nathan Eovaldi,SP,16,1
 Hebrew Nationals,Tyler Stephenson,C,23,0
-Hebrew Nationals,Vladimir Guerrero Jr.,"1B,3B",1,0
-Hebrew Nationals,Willi Castro,"2B,3B,SS,OF",20,0
-Hebrew Nationals,Jake Burger,"1B,3B",15,2
+Hebrew Nationals,Vladimir Guerrero Jr.,1B,1,0
+Hebrew Nationals,Willi Castro,"2B,3B,OF",20,0
+Hebrew Nationals,Jake Burger,1B,15,2
 Hebrew Nationals,Ezequiel Tovar,SS,9,0
 Hebrew Nationals,Teoscar Hernández,OF,2,0
 Hebrew Nationals,Nick Castellanos,OF,7,0
@@ -163,16 +163,16 @@ Hebrew Nationals,Seth Lugo,SP,10,2
 High Falls Heroes,Carter Jensen,C,0,0
 High Falls Heroes,Nick Kurtz,1B,0,0
 High Falls Heroes,Enrique Hernández,"1B,2B,3B,SS,OF",0,0
-High Falls Heroes,Miguel Vargas,"1B,3B,OF",0,0
-High Falls Heroes,Ceddanne Rafaela,"2B,SS,OF",17,0
+High Falls Heroes,Miguel Vargas,"1B,3B",0,0
+High Falls Heroes,Ceddanne Rafaela,"2B,OF",17,0
 High Falls Heroes,James Wood,OF,18,0
 High Falls Heroes,Mike Trout,OF,4,0
 High Falls Heroes,Zach Cole,OF,0,0
 High Falls Heroes,Michael Busch,1B,12,0
 High Falls Heroes,Bryce Harper,1B,1,0
-High Falls Heroes,Hunter Goodman,"C,OF",25,0
+High Falls Heroes,Hunter Goodman,C,25,0
 High Falls Heroes,Jarren Duran,OF,5,0
-High Falls Heroes,Romy Gonzalez,"1B,2B,3B,SS",0,0
+High Falls Heroes,Romy Gonzalez,"1B,2B",0,0
 High Falls Heroes,Adrian Del Castillo,C,0,0
 High Falls Heroes,Addison Barger,"3B,OF",0,0
 High Falls Heroes,Victor Vodnik,RP,25,0
@@ -180,12 +180,12 @@ High Falls Heroes,Luke Weaver,RP,22,0
 High Falls Heroes,Eury Pérez,SP,20,0
 High Falls Heroes,Aroldis Chapman,RP,15,0
 High Falls Heroes,Shane Bieber,SP,0,0
-High Falls Heroes,Drew Rasmussen,"SP,RP",22,0
+High Falls Heroes,Drew Rasmussen,SP,22,0
 High Falls Heroes,Ryan Helsley,RP,9,3
 High Falls Heroes,Cristian Javier,SP,0,0
-High Falls Heroes,Grant Taylor,"SP,RP",0,0
+High Falls Heroes,Grant Taylor,RP,0,0
 High Falls Heroes,Patrick Corbin,SP,0,0
-High Falls Heroes,Luke Keaschall,"1B,2B,OF",0,0
+High Falls Heroes,Luke Keaschall,2B,0,0
 Jeters Never Win,Francisco Alvarez,C,21,0
 Jeters Never Win,Manny Machado,3B,2,0
 Jeters Never Win,Jose Altuve,"2B,OF",3,0
@@ -195,7 +195,7 @@ Jeters Never Win,Giancarlo Stanton,OF,0,0
 Jeters Never Win,Geraldo Perdomo,SS,0,0
 Jeters Never Win,Jakob Marsee,OF,0,0
 Jeters Never Win,Tyler Soderstrom,"1B,OF",11,0
-Jeters Never Win,Yainer Diaz,"C,1B",5,0
+Jeters Never Win,Yainer Diaz,C,5,0
 Jeters Never Win,Moisés Ballesteros,C,0,0
 Jeters Never Win,Mark Vientos,3B,17,1
 Jeters Never Win,Jac Caglianone,"1B,OF",24,0
@@ -204,27 +204,27 @@ Jeters Never Win,Parker Messick,SP,0,0
 Jeters Never Win,Quinn Priester,"SP,RP",0,0
 Jeters Never Win,Robert Suarez,RP,4,0
 Jeters Never Win,Abner Uribe,RP,0,0
-Jeters Never Win,Cade Smith,RP,19,0
+Jeters Never Win,Cade Smith,SP,19,0
 Jeters Never Win,Emmet Sheehan,SP,0,0
-Jeters Never Win,Jacob Misiorowski,"SP,RP",0,0
-Jeters Never Win,Clay Holmes,"SP,RP",9,0
+Jeters Never Win,Jacob Misiorowski,SP,0,0
+Jeters Never Win,Clay Holmes,SP,9,0
 Jeters Never Win,Nolan McLean,SP,0,0
 Jeters Never Win,Jonah Tong,SP,0,0
 Jeters Never Win,Hurston Waldrep,SP,0,0
 Jeters Never Win,Roman Anthony,OF,18,0
-K-Nines,Samuel Basallo,"C,1B",0,0
+K-Nines,Samuel Basallo,C,0,0
 K-Nines,Josh Naylor,1B,4,0
 K-Nines,Jordan Westburg,"2B,3B",17,0
 K-Nines,José Ramírez,3B,1,0
 K-Nines,Trent Grisham,OF,0,0
 K-Nines,Steven Kwan,OF,7,0
-K-Nines,Zach McKinstry,"2B,3B,SS,OF",0,0
+K-Nines,Zach McKinstry,"3B,SS,OF",0,0
 K-Nines,CJ Abrams,SS,11,3
 K-Nines,Elly De La Cruz,SS,13,2
 K-Nines,Gleyber Torres,2B,21,0
 K-Nines,Kerry Carpenter,OF,10,0
 K-Nines,Yordan Alvarez,OF,1,0
-K-Nines,Konnor Griffin,SS,0,0
+K-Nines,Konnor Griffin,"SS,OF",0,0
 K-Nines,Justin Verlander,SP,25,0
 K-Nines,Javier Assad,SP,0,0
 K-Nines,Bryan Abreu,RP,22,0
@@ -256,7 +256,7 @@ Kiki Kankles,Johan Oviedo,SP,0,0
 Kiki Kankles,Andrew Kittredge,RP,0,0
 Kiki Kankles,Hunter Greene,SP,6,0
 Kiki Kankles,Kevin Gausman,SP,8,0
-Kiki Kankles,Jared Koenig,"SP,RP",0,0
+Kiki Kankles,Jared Koenig,RP,0,0
 Kiki Kankles,Ronny Henriquez,RP,0,0
 Kiki Kankles,Devin Williams,RP,3,0
 Kiki Kankles,Blake Snell,SP,4,0
@@ -272,8 +272,8 @@ The Phenomenal Smiths,George Springer,OF,0,0
 The Phenomenal Smiths,Colton Cowser,OF,14,2
 The Phenomenal Smiths,Kyle Tucker,OF,1,0
 The Phenomenal Smiths,Brice Turang,2B,17,0
-The Phenomenal Smiths,Rafael Devers,"1B,3B",2,0
-The Phenomenal Smiths,Nico Hoerner,"2B,SS",12,3
+The Phenomenal Smiths,Rafael Devers,1B,2,0
+The Phenomenal Smiths,Nico Hoerner,2B,12,3
 The Phenomenal Smiths,Eugenio Suárez,3B,11,0
 The Phenomenal Smiths,Ryan O'Hearn,"1B,OF",0,0
 The Phenomenal Smiths,Bryan Reynolds,OF,3,0
@@ -281,10 +281,10 @@ The Phenomenal Smiths,Kyle Manzardo,1B,0,0
 The Phenomenal Smiths,Paul Goldschmidt,1B,7,0
 The Phenomenal Smiths,Matt Wallner,OF,19,0
 The Phenomenal Smiths,Paul Skenes,SP,16,0
-The Phenomenal Smiths,Shane Smith,"SP,RP",0,0
+The Phenomenal Smiths,Shane Smith,SP,0,0
 The Phenomenal Smiths,Ryne Nelson,"SP,RP",0,0
 The Phenomenal Smiths,Brad Keller,RP,0,0
-The Phenomenal Smiths,Adrian Houser,"SP,RP",0,0
+The Phenomenal Smiths,Adrian Houser,SP,0,0
 The Phenomenal Smiths,Caleb Thielbar,RP,0,0
 The Phenomenal Smiths,Zack Littell,SP,0,0
 The Phenomenal Smiths,Lucas Giolito,SP,0,0
@@ -292,7 +292,7 @@ The Phenomenal Smiths,Yusei Kikuchi,SP,9,0
 The Phenomenal Smiths,Brandon Woodruff,SP,10,0
 The Phenomenal Smiths,Framber Valdez,SP,4,0
 The Phenomenal Smiths,Lucas Erceg,RP,8,0
-The Phenomenal Smiths,Willson Contreras,"C,1B",5,0
+The Phenomenal Smiths,Willson Contreras,1B,5,0
 The Phenomenal Smiths,Bo Bichette,SS,6,0
 The Phenomenal Smiths,Jacob Lopez,SP,0,0
 The Funeral Home,Logan O'Hoppe,C,13,0
@@ -302,7 +302,7 @@ The Funeral Home,Matt Chapman,3B,12,1
 The Funeral Home,Casey Schmitt,"1B,2B,3B,SS",0,0
 The Funeral Home,Christian Yelich,OF,3,0
 The Funeral Home,Sal Frelick,OF,25,0
-The Funeral Home,Mookie Betts,"2B,SS,OF",1,0
+The Funeral Home,Mookie Betts,SS,1,0
 The Funeral Home,Gabriel Moreno,C,19,0
 The Funeral Home,Masataka Yoshida,OF,16,0
 The Funeral Home,Joc Pederson,OF,20,0
@@ -320,7 +320,7 @@ The Funeral Home,Aaron Nola,SP,5,0
 The Funeral Home,Mitch Keller,SP,15,2
 The Funeral Home,AJ Smith-Shawver,SP,0,0
 The Funeral Home,Jorge López,RP,0,0
-The Funeral Home,Tommy Edman,"2B,3B,SS,OF",18,1
+The Funeral Home,Tommy Edman,"2B,3B,OF",18,1
 The Funeral Home,Zack Wheeler,SP,2,0
 The Funeral Home,Liam Hendriks,RP,9,0
 The Nudes,Alejandro Kirk,C,0,0
@@ -330,10 +330,10 @@ The Nudes,Alec Bohm,"1B,3B",6,0
 The Nudes,Trea Turner,SS,2,0
 The Nudes,Jackson Chourio,OF,14,2
 The Nudes,Michael Harris II,OF,12,3
-The Nudes,Kevin McGonigle,"2B,SS",0,0
+The Nudes,Kevin McGonigle,SS,0,0
 The Nudes,Dylan Beavers,OF,0,0
 The Nudes,Daulton Varsho,OF,20,0
-The Nudes,Xander Bogaerts,"2B,SS",8,0
+The Nudes,Xander Bogaerts,SS,8,0
 The Nudes,Spencer Torkelson,1B,0,0
 The Nudes,William Contreras,C,11,3
 The Nudes,Chandler Simpson,OF,0,0
@@ -348,8 +348,8 @@ The Nudes,Ranger Suárez,SP,14,1
 The Nudes,Trevor Rogers,SP,0,0
 The Nudes,Jack Leiter,SP,24,0
 The Nudes,Bryan Woo,SP,12,1
-The Nudes,Kris Bubic,"SP,RP",25,0
-Topline Jobbers,Agustín Ramírez,"C,1B",0,0
+The Nudes,Kris Bubic,SP,25,0
+Topline Jobbers,Agustín Ramírez,C,0,0
 Topline Jobbers,Nathaniel Lowe,1B,12,0
 Topline Jobbers,Jorge Polanco,"2B,3B",0,0
 Topline Jobbers,Junior Caminero,3B,4,0
@@ -360,7 +360,7 @@ Topline Jobbers,Aaron Judge,OF,1,0
 Topline Jobbers,Pete Alonso,1B,2,0
 Topline Jobbers,Xavier Edwards,"2B,SS",17,0
 Topline Jobbers,Victor Scott II,OF,0,0
-Topline Jobbers,Matt Shaw,"2B,3B,SS",8,0
+Topline Jobbers,Matt Shaw,3B,8,0
 Topline Jobbers,Zac Gallen,SP,6,0
 Topline Jobbers,Casey Mize,SP,0,0
 Topline Jobbers,Pete Fairbanks,RP,10,3
@@ -375,5 +375,5 @@ Topline Jobbers,Zach Eflin,SP,8,0
 Topline Jobbers,Kumar Rocker,SP,0,0
 Topline Jobbers,Dean Kremer,SP,0,0
 Topline Jobbers,Anthony Santander,OF,9,3
-Topline Jobbers,Brandon Walter,"SP,RP",0,0
+Topline Jobbers,Brandon Walter,SP,0,0
 Topline Jobbers,Bryce Miller,SP,7,0

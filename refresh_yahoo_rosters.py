@@ -12,8 +12,8 @@ from yahoo_import import get_yahoo_query, get_all_rosters, save_rosters_to_csv
 
 # League configuration from CLAUDE.md
 LEAGUE_ID = "27545"
-SEASON = 2025
-GAME_ID = 458  # Yahoo game_id for MLB 2025
+SEASON = 2026
+GAME_ID = 469  # Yahoo game_id for MLB 2026
 
 def main():
     print("=" * 60)
