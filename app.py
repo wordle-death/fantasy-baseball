@@ -53,7 +53,7 @@ st.set_page_config(
 
 # --- Data Loading ---
 
-@st.cache_data
+@st.cache_data(ttl=300)  # Re-read CSV every 5 minutes to pick up deploys
 def load_sgp_values():
     """Load SGP player valuations (cached)."""
     path = Path('data/projections/sgp_player_values_v3.csv')
