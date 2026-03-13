@@ -37,9 +37,12 @@ PITCHER_BUDGET = TOTAL_BUDGET * PITCHER_BUDGET_PCT  # $1,092
 HITTERS_PER_TEAM = 14
 PITCHERS_PER_TEAM = 9
 
-# Draftable player pool (1.5x roster spots for replacement level)
-DRAFTABLE_HITTERS = int(NUM_TEAMS * HITTERS_PER_TEAM * 1.0)  # ~196
-DRAFTABLE_PITCHERS = int(NUM_TEAMS * PITCHERS_PER_TEAM * 1.0)  # ~126
+# Draftable player pool
+# Use 1.5x multiplier to include part-time players, platoon bats, and
+# guys with unclear paths to playing time — a 25-round draft (350 picks)
+# needs a deeper pool than just projected starters.
+DRAFTABLE_HITTERS = int(NUM_TEAMS * HITTERS_PER_TEAM * 2.0)  # ~392
+DRAFTABLE_PITCHERS = int(NUM_TEAMS * PITCHERS_PER_TEAM * 2.0)  # ~252
 
 # SGP denominators for a 14-team league
 # These represent how many stat points = 1 position in standings
@@ -220,7 +223,7 @@ def apply_position_scarcity(df: pd.DataFrame, is_pitcher: bool = False) -> pd.Da
 
 
 def calculate_hitter_sgp(hitters_df: pd.DataFrame,
-                         min_pa: int = 200) -> pd.DataFrame:
+                         min_pa: int = 1) -> pd.DataFrame:
     """
     Calculate SGP values for hitters.
 
@@ -267,7 +270,7 @@ def calculate_hitter_sgp(hitters_df: pd.DataFrame,
 
 
 def calculate_pitcher_sgp(pitchers_df: pd.DataFrame,
-                          min_ip: int = 30) -> pd.DataFrame:
+                          min_ip: int = 1) -> pd.DataFrame:
     """
     Calculate SGP values for pitchers.
 
@@ -509,10 +512,12 @@ def run_sgp_valuation(hitter_file: str, pitcher_file: str,
 
     print(f"  Loaded {len(hitters)} hitters and {len(pitchers)} pitchers")
 
-    # Filter to minimum playing time
-    hitters = hitters[hitters['PA'] >= 200]
-    pitchers = pitchers[pitchers['IP'] >= 30]
-    print(f"  After filters: {len(hitters)} hitters (200+ PA), {len(pitchers)} pitchers (30+ IP)")
+    # No PA/IP cutoff — include all projected players. In a 25-round draft,
+    # spring training battles and injuries can shift playing time dramatically.
+    # The DRAFTABLE_HITTERS/PITCHERS cap handles pool sizing.
+    hitters = hitters[hitters['PA'] >= 1]
+    pitchers = pitchers[pitchers['IP'] >= 1]
+    print(f"  After filters: {len(hitters)} hitters, {len(pitchers)} pitchers (no PA/IP cutoff)")
 
     # Add position data if Yahoo roster provided
     use_position_scarcity = False
