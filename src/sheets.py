@@ -101,49 +101,62 @@ def normalize_team_name(header_text: str) -> str:
     return header_text.strip()
 
 
-def parse_draft_cell(cell_value: str) -> tuple:
+def parse_draft_cell(cell_value: str) -> list:
     """
-    Parse a draft board cell into (pick_number, player_name).
+    Parse a draft board cell into a list of (pick_number, player_name) tuples.
 
-    Cell formats:
-    - "10 Ronald Acuña Jr." → (10, "Ronald Acuña Jr.")
-    - "10" → (10, None)  # not yet picked
-    - "" → (None, None)  # empty cell
-    - "K: Ronald Acuña Jr." → (None, "Ronald Acuña Jr.")  # keeper notation
+    Most cells produce a single result, but cells with newlines (e.g., traded
+    picks crammed into one cell) can produce multiple:
+    - "158 Aroldis Chapman (2)" → [(158, "Aroldis Chapman")]
+    - "156\\n158 Aroldis Chapman (2)" → [(156, None), (158, "Aroldis Chapman")]
+    - "10" → [(10, None)]  # not yet picked
+    - "" → [(None, None)]
+    - "K: Ronald Acuña Jr." → [(None, "Ronald Acuña Jr.")]
 
     Returns:
-        (pick_number, player_name) — player_name is None if cell is unpicked
+        List of (pick_number, player_name) tuples
     """
     if not cell_value or not cell_value.strip():
-        return (None, None)
+        return [(None, None)]
 
-    text = cell_value.strip()
+    # Split multi-line cells (traded picks often share a cell)
+    lines = [l.strip() for l in cell_value.strip().splitlines() if l.strip()]
 
-    # Check for keeper notation (e.g., "K: Player Name" or "K - Player Name")
-    keeper_match = re.match(r'^[Kk][:\-\s]+(.+)$', text)
-    if keeper_match:
-        return (None, keeper_match.group(1).strip())
+    if not lines:
+        return [(None, None)]
 
-    # Try to parse "number PlayerName" format
-    match = re.match(r'^(\d+)\s+(.+)$', text)
-    if match:
-        pick_num = int(match.group(1))
-        player_name = match.group(2).strip()
-        # Clean up common annotations:
-        # "(B)" or "(P)" = batter/pitcher tag
-        # "(2)" or "(3)" = years kept count
-        # "(P) (2)" = pitcher tag + years kept
-        player_name = re.sub(r'\s*\([BPbp]\)', '', player_name)
-        player_name = re.sub(r'\s*\(\d\)', '', player_name)
-        player_name = player_name.strip()
-        return (pick_num, player_name)
+    results = []
+    for text in lines:
+        # Check for keeper notation (e.g., "K: Player Name" or "K - Player Name")
+        keeper_match = re.match(r'^[Kk][:\-\s]+(.+)$', text)
+        if keeper_match:
+            results.append((None, keeper_match.group(1).strip()))
+            continue
 
-    # Number only = unpicked slot
-    if text.isdigit():
-        return (int(text), None)
+        # Try to parse "number PlayerName" format
+        match = re.match(r'^(\d+)\s+(.+)$', text)
+        if match:
+            pick_num = int(match.group(1))
+            player_name = match.group(2).strip()
+            # Clean up common annotations:
+            # "(B)" or "(P)" = batter/pitcher tag
+            # "(2)" or "(3)" = years kept count
+            # "(P) (2)" = pitcher tag + years kept
+            player_name = re.sub(r'\s*\([BPbp]\)', '', player_name)
+            player_name = re.sub(r'\s*\(\d\)', '', player_name)
+            player_name = player_name.strip()
+            results.append((pick_num, player_name))
+            continue
 
-    # Text only (no number) = possibly a keeper or annotation
-    return (None, text if len(text) > 2 else None)
+        # Number only = unpicked slot
+        if text.isdigit():
+            results.append((int(text), None))
+            continue
+
+        # Text only (no number) = possibly a keeper or annotation
+        results.append((None, text if len(text) > 2 else None))
+
+    return results if results else [(None, None)]
 
 
 def get_draft_board(client: gspread.Client,
@@ -225,16 +238,17 @@ def get_draft_board(client: gspread.Client,
                 continue
 
             cell_value = row[col_idx]
-            pick_num, player_name = parse_draft_cell(cell_value)
+            parsed_picks = parse_draft_cell(cell_value)
 
-            picks.append({
-                'Round': draft_round,
-                'OverallPick': pick_num,
-                'Team': team_name,
-                'Player': player_name,
-                'IsPicked': player_name is not None,
-                'RawCell': cell_value,
-            })
+            for pick_num, player_name in parsed_picks:
+                picks.append({
+                    'Round': draft_round,
+                    'OverallPick': pick_num,
+                    'Team': team_name,
+                    'Player': player_name,
+                    'IsPicked': player_name is not None,
+                    'RawCell': cell_value,
+                })
 
     df = pd.DataFrame(picks)
 
